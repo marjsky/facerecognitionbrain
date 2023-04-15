@@ -1,15 +1,120 @@
-import { useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
-import "./App.css";
+// import Clarifai from "clarifai";
+import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
 import Navigation from "./components/Navigation/Navigation";
+//import Signin from "./components/Signin/Signin";
+//import Register from "./components/Register/Register";
 import Logo from "./components/Logo/Logo";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
 import Rank from "./components/Rank/Rank";
+import "./App.css"; 
+
+const returnClarifaiJSONRequestOptions = (imageUrl) => {
+  const PAT = "aeaa2f3f15a04e2eaf05ac651bdf382d";
+  const USER_ID = "ma2421hip";
+  const APP_ID = "my-first-application";
+  const MODEL_ID = "face-detection";
+  const IMAGE_URL = imageUrl;
+
+  const raw = JSON.stringify({
+    user_app_id: {
+      user_id: USER_ID,
+      app_id: APP_ID,
+    },
+    inputs: [
+      {
+        data: {
+          image: {
+            url: IMAGE_URL,
+          },
+        },
+      },
+    ],
+  });
+
+  const requestOptions = {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: "Key " + PAT,
+    },
+    body: raw,
+  };
+
+  return requestOptions;
+};
+
 
 function App() {
+  const [input, setInput] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  // const [box, setBox] = useState({});
+  // const [route, setRoute] = useState('home');
+  // const [isSignedIn, setIsSignedIn] = useState(false);
+  const [user, setUser] = useState({
+    id: '',
+    name: '',
+    email: '',
+    entries: 0,
+    joined: ''
+  });
+
+  // const loaduser = (user) => {
+
+  // }
+
+  // const calculateFaceLocation = (data) => {
+
+  // }
+
+  // const displayFaceBox = (box) => {
+    
+  // }
+
+  const onInputChange = (event) => {
+    setInput( event.target.value );
+  }
+
+  const onButonSubmit = () => {
+    setImageUrl( input );
+
+    // app.models.predict('face-detection', this.state.input)
+    fetch(
+      "https://api.clarifai.com/v2/models/" + 
+      "face-detection" + 
+      "/outputs",
+      returnClarifaiJSONRequestOptions(input)
+    )
+      .then((response) => response.json())
+      .then((response) => {
+        console.log("hi", response);
+        if (response) {
+          fetch("http://localhost:3000/image", {
+            method: "put",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: user.id,
+            }),
+          })
+            .then((response) => response.json())
+            .then((count) => {
+              setUser(Object.assign(user, { entries: count }));
+            });
+        }
+        // displayFaceBox(calculateFaceLocation(response))
+      })
+      .catch((err) => console.log(err));
+  }
+
+    
+  // const onRouteChange = (route) => {
+
+  // }
+
   const particlesInit = useCallback(async (engine) => {
-    console.log(engine);
+    //console.log(engine);
     // you can initiate the tsParticles instance (engine) here, adding custom shapes or presets
     // this loads the tsparticles package bundle, it's the easiest method for getting everything ready
     // starting from v2 you can add only the features you need reducing the bundle size
@@ -17,12 +122,13 @@ function App() {
   }, []);
 
   const particlesLoaded = useCallback(async (container) => {
-    await console.log(container);
+    //await console.log(container);
   }, []);
 
   return (
     <div className="App">
-      <Particles className="particles"
+      <Particles
+        className="particles"
         id="tsparticles"
         init={particlesInit}
         loaded={particlesLoaded}
@@ -97,8 +203,11 @@ function App() {
       <Navigation />
       <Logo />
       <Rank />
-      <ImageLinkForm />
-      {/* <FaceRecognition /> */}
+      <ImageLinkForm
+        onInputChange={onInputChange}
+        onButonSubmit={onButonSubmit}
+      />
+      <FaceRecognition imageUrl={imageUrl} />
     </div>
   );
 }
