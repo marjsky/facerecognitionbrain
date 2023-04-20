@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import ParticlesBg from "particles-bg";
 import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
 import Navigation from "./components/Navigation/Navigation";
@@ -51,7 +51,7 @@ class App extends Component {
       input: "",
       imageUrl: "",
       box: {},
-      route: 'signin',
+      route: "signin",
       isSignedIn: false,
       user: {
         id: "",
@@ -63,28 +63,41 @@ class App extends Component {
     };
   }
 
+  loadUser = (data) => {
+    this.setState({
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined,
+      },
+    });
+  };
+
   componentDidMount() {
-    fetch('http://localhost:3000/')
-    .then(response => response.json())
-    .then(console.log)
+    fetch("http://localhost:3000/")
+      .then((response) => response.json())
+      .then(console.log);
   }
 
   calculateFaceLocation = (data) => {
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
-    const image = document.getElementById('inputimage');
+    const clarifaiFace =
+      data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById("inputimage");
     const width = Number(image.width);
     const height = Number(image.height);
     return {
       leftCol: clarifaiFace.left_col * width,
       topRow: clarifaiFace.top_row * height,
-      rightCol: width - (clarifaiFace.right_col * width),
-      bottomRow: height - (clarifaiFace.bottom_row * height)
+      rightCol: width - clarifaiFace.right_col * width,
+      bottomRow: height - clarifaiFace.bottom_row * height,
     };
-  }
+  };
 
   displayFaceBox = (box) => {
-    this.setState({box: box});
-  }
+    this.setState({ box: box });
+  };
 
   onInputChange = (event) => {
     this.setState({ input: event.target.value });
@@ -94,24 +107,24 @@ class App extends Component {
     this.setState({ imageUrl: this.state.input });
 
     fetch(
-      "https://api.clarifai.com/v2/models/" + 
-      "face-detection" + 
-      "/outputs",
+      "https://api.clarifai.com/v2/models/" + "face-detection" + "/outputs",
       returnClarifaiJSONRequestOptions(this.state.input)
     )
-      .then(response => response.json())
-      .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
-      .catch(err => console.log(err));
+      .then((response) => response.json())
+      .then((response) =>
+        this.displayFaceBox(this.calculateFaceLocation(response))
+      )
+      .catch((err) => console.log(err));
   };
 
   onRouteChange = (route) => {
-    if (route === 'signout') {
-      this.setState({ isSignedIn: false })
-    } else if (route === 'home') {
-      this.setState({ isSignedIn: true })
+    if (route === "signout") {
+      this.setState({ isSignedIn: false });
+    } else if (route === "home") {
+      this.setState({ isSignedIn: true });
     }
     this.setState({ route: route });
-  }
+  };
 
   render() {
     const { isSignedIn, route, box, imageUrl } = this.state;
@@ -131,15 +144,12 @@ class App extends Component {
               onInputChange={this.onInputChange}
               onButonSubmit={this.onButonSubmit}
             />
-            <FaceRecognition
-              box={box}
-              imageUrl={imageUrl}
-            />
+            <FaceRecognition box={box} imageUrl={imageUrl} />
           </div>
         ) : route === "signin" ? (
           <Signin onRouteChange={this.onRouteChange} />
         ) : (
-          <Register onRouteChange={this.onRouteChange} />
+          <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
         )}
       </div>
     );
