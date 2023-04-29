@@ -9,8 +9,6 @@ import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
 import Rank from "./components/Rank/Rank";
 import "./App.css";
 
-
-
 const initialState = {
   input: "",
   imageUrl: "",
@@ -46,7 +44,7 @@ class App extends Component {
   };
 
   componentDidMount() {
-    fetch("http://localhost:3000")
+    fetch("https://mybackend-x9kz.onrender.com")
       .then((response) => response)
       .catch(error => console.error('1', error));  
   }
@@ -76,7 +74,7 @@ class App extends Component {
   onPictureSubmit = () => {
     this.setState({ imageUrl: this.state.input });
 
-      fetch("http://localhost:3000/imageurl", {
+      fetch("https://mybackend-x9kz.onrender.com/imageurl", {
         method: "post",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -86,7 +84,7 @@ class App extends Component {
         .then((response) => response.json())
         .then((response) => {
           if (response) {
-            fetch("http://localhost:3000/image", {
+            fetch("https://mybackend-x9kz.onrender.com/image", {
               method: "put",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
